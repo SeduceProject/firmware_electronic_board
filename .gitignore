@@ -5,4 +5,6 @@ tmp/
 *.jpg
 .idea
 
+*.pyc
+
 .DS_Store
