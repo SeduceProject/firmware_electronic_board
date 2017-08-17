@@ -1,187 +1,170 @@
-// RFM69HCW Example Sketch
-// Send serial input characters from one RFM69 node to another
-// Based on RFM69 library sample code by Felix Rusu
-// http://LowPowerLab.com/contact
-// Modified for RFM69HCW by Mike Grusin, 4/16
+// **********************************************************************************
+// This sketch is an example of how wireless programming can be achieved with a Moteino
+// that was loaded with a custom 1k bootloader (DualOptiboot) that is capable of loading
+// a new sketch from an external SPI flash chip
+// This is the GATEWAY node, it does not need a custom Optiboot nor any external FLASH memory chip
+// (ONLY the target node will need those)
+// The sketch includes logic to receive the new sketch from the serial port (from a host computer) and
+// transmit it wirelessly to the target node
+// The handshake protocol that receives the sketch from the serial port
+// is handled by the SPIFLash/WirelessHEX69 library, which also relies on the RFM69 library
+// These libraries and custom 1k Optiboot bootloader for the target node are at: http://github.com/lowpowerlab
+// **********************************************************************************
+// Copyright Felix Rusu 2016, http://www.LowPowerLab.com/contact
+// **********************************************************************************
+// License
+// **********************************************************************************
+// This program is free software; you can redistribute it
+// and/or modify it under the terms of the GNU General
+// Public License as published by the Free Software
+// Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will
+// be useful, but WITHOUT ANY WARRANTY; without even the
+// implied warranty of MERCHANTABILITY or FITNESS FOR A
+// PARTICULAR PURPOSE. See the GNU General Public
+// License for more details.
+//
+// Licence can be viewed at
+// http://www.gnu.org/licenses/gpl-3.0.txt
+//
+// Please maintain this license information along with authorship
+// and copyright notices in any redistribution of this code
+// **********************************************************************************
+#include <RFM69.h>          //get it here: https://github.com/lowpowerlab/RFM69
+#include <RFM69_ATC.h>      //get it here: https://github.com/lowpowerlab/RFM69
+#include <RFM69_OTA.h>      //get it here: https://github.com/lowpowerlab/RFM69
+#include <SPIFlash.h>       //get it here: https://www.github.com/lowpowerlab/spiflash
+#include <SPI.h>            //included with Arduino IDE (www.arduino.cc)
 
-// This sketch will show you the basics of using an
-// RFM69HCW radio module. SparkFun's part numbers are:
-// 915MHz: https://www.sparkfun.com/products/12775
-// 434MHz: https://www.sparkfun.com/products/12823
-
-// See the hook-up guide for wiring instructions:
-// https://learn.sparkfun.com/tutorials/rfm69hcw-hookup-guide
-
-// Uses the RFM69 library by Felix Rusu, LowPowerLab.com
-// Original library: https://www.github.com/lowpowerlab/rfm69
-// SparkFun repository: https://github.com/sparkfun/RFM69HCW_Breakout
-
-// Include the RFM69 and SPI libraries:
-
-#include <RFM69.h>
-#include <SPI.h>
-
-// Addresses for this node. CHANGE THESE FOR EACH NODE!
-
-#define NETWORKID     0   // Must be the same for all nodes
-#define MYNODEID      2   // My node ID
-#define TONODEID      1   // Destination node ID
-
-// RFM69 frequency, uncomment the frequency of your module:
-
+//****************************************************************************************************************
+//**** IMPORTANT RADIO SETTINGS - YOU MUST CHANGE/CONFIGURE TO MATCH YOUR HARDWARE TRANSCEIVER CONFIGURATION! ****
+//****************************************************************************************************************
+#define NODEID             {{ node_id }}  //this node's ID, should be unique among nodes on this NETWORKID
+#define NETWORKID          100  //what network this node is on
+//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
 #define FREQUENCY   RF69_433MHZ
+//#define FREQUENCY   RF69_868MHZ
 //#define FREQUENCY     RF69_915MHZ
+//#define FREQUENCY_EXACT 916000000
+#define FREQUENCY_EXACT 433000000
+#define ENCRYPTKEY "sampleEncryptKey" //(16 bytes of your choice - keep the same on all encrypted nodes)
+//#define IS_RFM69HW_HCW  //uncomment only for RFM69HW/HCW! Leave out if you have RFM69W/CW!
+//*********************************************************************************************
+#define ENABLE_ATC               //comment out this line to disable AUTO TRANSMISSION CONTROL
+//*********************************************************************************************
+//#define BR_300KBPS             //run radio at max rate of 300kbps!
+//*********************************************************************************************
+#define DEBUG_MODE false         //set 'true' to see verbose output from programming sequence
 
-// AES encryption (or not):
+#define SERIAL_BAUD 115200
+#define ACK_TIME    50  // # of ms to wait for an ack
+#define TIMEOUT     3000
 
-#define ENCRYPT       true // Set to "true" to use encryption
-#define ENCRYPTKEY    "TOPSECRETPASSWRD" // Use the same 16-byte key on all nodes
+#ifdef __AVR_ATmega1284P__
+  #define LED           15 // MoteinoMEGA has LED on D15
+#else
+  #define LED            9 // Moteino has LED on D9
+#endif
 
-// Use ACKnowledge when sending messages (or not):
+#ifdef ENABLE_ATC
+  RFM69_ATC radio;
+#else
+  RFM69 radio;
+#endif
 
-#define USEACK        true // Request ACKs or not
+char c = 0;
+char input[64]; //serial input buffer
+byte targetID=0;
 
-// Packet sent/received indicator LED (optional):
+void setup(){
+  Serial.begin(SERIAL_BAUD);
+  radio.initialize(FREQUENCY,NODEID,NETWORKID);
+  radio.encrypt(ENCRYPTKEY); //OPTIONAL
 
-#define LED           9 // LED positive pin
-#define GND           8 // LED ground pin
+#ifdef FREQUENCY_EXACT
+  radio.setFrequency(FREQUENCY_EXACT); //set frequency to some custom frequency
+#endif
 
-#define MAX_SEND     250 // maximum packet size
+#ifdef IS_RFM69HW_HCW
+  radio.setHighPower(); //must include this only for RFM69HW/HCW!
+#endif
+  Serial.println("Start wireless gateway...");
 
-// Create a library object for our RFM69HCW module:
-
-RFM69 radio;
-
-void setup()
-{
-  // Open a serial port so we can send keystrokes to the module:
-
-  Serial.begin(9600);
-  Serial.print("Node ");
-  Serial.print(MYNODEID,DEC);
-  Serial.println(" ready");
-
-  // Set up the indicator LED (optional):
-
-  pinMode(LED,OUTPUT);
-  digitalWrite(LED,LOW);
-  pinMode(GND,OUTPUT);
-  digitalWrite(GND,LOW);
-
-  // Initialize the RFM69HCW:
-
-  radio.initialize(FREQUENCY, MYNODEID, NETWORKID);
-  //radio.setHighPower(); // Always use this for RFM69HCW
-
-  // Turn on encryption if desired:
-
-  if (ENCRYPT)
-    radio.encrypt(ENCRYPTKEY);
+#ifdef BR_300KBPS
+  radio.writeReg(0x03, 0x00);  //REG_BITRATEMSB: 300kbps (0x006B, see DS p20)
+  radio.writeReg(0x04, 0x6B);  //REG_BITRATELSB: 300kbps (0x006B, see DS p20)
+  radio.writeReg(0x19, 0x40);  //REG_RXBW: 500kHz
+  radio.writeReg(0x1A, 0x80);  //REG_AFCBW: 500kHz
+  radio.writeReg(0x05, 0x13);  //REG_FDEVMSB: 300khz (0x1333)
+  radio.writeReg(0x06, 0x33);  //REG_FDEVLSB: 300khz (0x1333)
+  radio.writeReg(0x29, 240);   //set REG_RSSITHRESH to -120dBm
+#endif
 }
 
-void loop()
-{
-  //Serial.println("LOOPING");
-  // Set up a "buffer" for characters that we'll send:
+int cpt = 0;
 
-  static char sendbuffer[1000];
-  static int sendlength = 0;
+void loop(){
+  byte inputLen = readSerialLine(input, 10, 64, 100); //readSerialLine(char* input, char endOfLineChar=10, byte maxLength=64, uint16_t timeout=1000);
 
-  // SENDING
-
-  // In this section, we'll gather serial characters and
-  // send them to the other node if we (1) get a carriage return,
-  // or (2) the buffer is full (61 characters).
-
-  // If there is any serial input, add it to the buffer:
-
-  if (Serial.available() > 0)
+  if (inputLen==4 && input[0]=='F' && input[1]=='L' && input[2]=='X' && input[3]=='?') {
+    if (targetID==0)
+      Serial.println("TO?");
+    else
+      CheckForSerialHEX((byte*)input, inputLen, radio, targetID, TIMEOUT, ACK_TIME, DEBUG_MODE);
+  }
+  else if (inputLen>3 && inputLen<=6 && input[0]=='T' && input[1]=='O' && input[2]==':')
   {
-    char input = Serial.read();
-
-    if (input != '\r') // not a carriage return
+    byte newTarget=0;
+    for (byte i = 3; i<inputLen; i++) //up to 3 characters for target ID
+      if (input[i] >=48 && input[i]<=57)
+        newTarget = newTarget*10+input[i]-48;
+      else
+      {
+        newTarget=0;
+        break;
+      }
+    if (newTarget>0)
     {
-      sendbuffer[sendlength] = input;
-      sendlength++;
+      targetID = newTarget;
+      Serial.print("TO:");
+      Serial.print(newTarget);
+      Serial.println(":OK");
     }
-
-    // If the input is a carriage return, or the buffer is full:
-
-    if ((input == '\r') || (sendlength == 999)) // CR or buffer full
+    else
     {
-      // Send the packet!
-
-
-      Serial.print("sending to node ");
-      Serial.print(TONODEID, DEC);
-      Serial.print(", message [");
-      for (byte i = 0; i < sendlength; i++)
-        Serial.print(sendbuffer[i]);
-      Serial.println("]");
-
-      // There are two ways to send packets. If you want
-      // acknowledgements, use sendWithRetry():
-
-      if (USEACK)
-      {
-        if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength))
-          Serial.println("ACK received!");
-        else
-          Serial.println("no ACK received");
-      }
-
-      // If you don't need acknowledgements, just use send():
-
-      else // don't use ACK
-      {
-        radio.send(TONODEID, sendbuffer, sendlength);
-      }
-
-      sendlength = 0; // reset the packet
-      Blink(LED,10);
+      Serial.print(input);
+      Serial.print(":INV");
     }
   }
+  else if (inputLen>0) { //just echo back
+    Serial.print("SERIAL IN > ");Serial.println(input);
+  }
 
-  // RECEIVING
-
-  // In this section, we'll check with the RFM69HCW to see
-  // if it has received any packets:
-
-  if (radio.receiveDone()) // Got one!
+  if (radio.receiveDone())
   {
-    // Print out the information:
-
-    Serial.print("received from node ");
-    Serial.print(radio.SENDERID, DEC);
-    Serial.print(", message [");
-
-    // The actual message is contained in the DATA array,
-    // and is DATALEN bytes in size:
-
     for (byte i = 0; i < radio.DATALEN; i++)
       Serial.print((char)radio.DATA[i]);
 
-    // RSSI is the "Receive Signal Strength Indicator",
-    // smaller numbers mean higher power.
-
-    Serial.print("], RSSI ");
-    Serial.println(radio.RSSI);
-
-    // Send an ACK if requested.
-    // (You don't need this code if you're not using ACKs.)
-
-    if (radio.ACKRequested())
+    if (radio.ACK_REQUESTED)
     {
       radio.sendACK();
-      Serial.println("ACK sent");
+      Serial.print(" - ACK sent");
     }
-    Blink(LED,10);
+
+    Serial.println();
+  }
+
+  if (cpt == 0) {
+    Blink(LED, 200); //heartbeat
+    cpt = cpt % 500;
   }
 }
 
 void Blink(byte PIN, int DELAY_MS)
-// Blink an LED for a given number of ms
 {
+  pinMode(PIN, OUTPUT);
   digitalWrite(PIN,HIGH);
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
