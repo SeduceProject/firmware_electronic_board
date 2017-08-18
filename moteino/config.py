@@ -7,6 +7,14 @@ config = {
         {
             "name": "Target",
             "file": "templates/inos/Target.ino"
+        },
+        {
+            "name": "Gateway",
+            "file": "templates/inos/Gateway.ino"
+        },
+        {
+            "name": "Sensor",
+            "file": "templates/inos/Sensor.ino"
         }
     ]
 }
