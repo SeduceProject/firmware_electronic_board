@@ -66,7 +66,7 @@ if __name__ == "__main__":
             print("ERROR: this script needs at least 1 device to illustrate ethernet and RF69")
             sys.exit(1)
 
-        sensor_usb_device = usb_devices[0]
+        sensor_usb_device = usb_devices[-1]
         # target_usb_device = usb_devices[1]
 
         print("Sensor usb device: %s" % (sensor_usb_device))

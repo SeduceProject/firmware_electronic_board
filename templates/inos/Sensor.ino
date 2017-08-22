@@ -48,12 +48,13 @@
 
 #define MAX_SEND     250 // maximum packet size
 
+#define USE_EXPONENTIAL_BACKOFF true
+
 // Create a library object for our RFM69HCW module:
 
 RFM69 radio;
 
-void setup()
-{
+void setup() {
   // Open a serial port so we can send keystrokes to the module:
 
   Serial.begin(9600);
@@ -81,88 +82,128 @@ void setup()
 
 int cpt = 0;
 
-void loop()
-{
-  //Serial.println("LOOPING");
-  // Set up a "buffer" for characters that we'll send:
+long int TIME_BETWEEN_TEMP_READING_MS = 1000 * 3;
+unsigned long last_temp_reading = -1;
 
-  static char sendbuffer[1000];
-  static int sendlength = 0;
+void loop() {
 
-  // SENDING
-
-  // In this section, we'll gather serial characters and
-  // send them to the other node if we (1) get a carriage return,
-  // or (2) the buffer is full (61 characters).
-
-  // If there is any serial input, add it to the buffer:
-
-  if (cpt == 0)
-  {
-      String msg = "{\"sensor\": {{ node_id }}, \"key\": \"temp\", \"value\": 23.6}";
-
-      sprintf(sendbuffer,"%s", msg.c_str());
-
-      //sendbuffer = msg.c_str();
-      sendlength = msg.length();
-
-    if (USEACK)
-      {
-        if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength))
-          Serial.println("ACK received!");
-        else
-          Serial.println("no ACK received");
-      }
-
-      // If you don't need acknowledgements, just use send():
-
-      else // don't use ACK
-      {
-        radio.send(TONODEID, sendbuffer, sendlength);
-      }
-
-      sendlength = 0; // reset the packet
-      Blink(LED,10);
+  bool send_temp_reading = false;
+  unsigned long time_since_last_reading = millis() - last_temp_reading;
+  if ((last_temp_reading == -1) || (time_since_last_reading > TIME_BETWEEN_TEMP_READING_MS)) {
+    last_temp_reading = millis();
+    send_temp_reading = true;
+  } else {
+    long time_to_sleep = TIME_BETWEEN_TEMP_READING_MS - time_since_last_reading;
+    //Serial.println("I will sleep:");
+    //Serial.println(time_to_sleep);
+    delay(time_to_sleep);
   }
 
-  /*
-  // RECEIVING
-
-  // In this section, we'll check with the RFM69HCW to see
-  // if it has received any packets:
-
-  if (radio.receiveDone()) // Got one!
+  if (send_temp_reading)
   {
-    // Print out the information:
+    static char sendbuffer[250];
+    static int sendlength = 0;
 
-    Serial.print("received from node ");
-    Serial.print(radio.SENDERID, DEC);
-    Serial.print(", message [");
+    Serial.println(" ");
+    Serial.println("+----------------------------------");
+    Serial.println("| Read temperature sensor");
+    Serial.println("+----------------------------------");
 
-    // The actual message is contained in the DATA array,
-    // and is DATALEN bytes in size:
+    float temperature = 0.0;
+    int reading_count = 0;
 
-    for (byte i = 0; i < radio.DATALEN; i++)
-      Serial.print((char)radio.DATA[i]);
-
-    // RSSI is the "Receive Signal Strength Indicator",
-    // smaller numbers mean higher power.
-
-    Serial.print("], RSSI ");
-    Serial.println(radio.RSSI);
-
-    // Send an ACK if requested.
-    // (You don't need this code if you're not using ACKs.)
-
-    if (radio.ACKRequested())
-    {
-      radio.sendACK();
-      Serial.println("ACK sent");
+    int min = 9999;
+    int max = -9999;
+    for (int i=0; i<10; i++) {
+        uint8_t temperature_reading = radio.readTemperature();
+        if (temperature_reading < min) {
+            min = temperature_reading;
+        }
+        if (temperature_reading > max) {
+            max = temperature_reading;
+        }
+        temperature += temperature_reading;
+        reading_count += 1;
+        delay(50); // Ensure we don't get 10 times the same temperature
     }
+
+    // The following block enables to filter aberrant temperature readings
+    if ((max - min) > 2) {
+      int time_until_next_try = 100 + random(1600);
+      Serial.println("| Failure: inaccurate temperature detected, I will sleep and try again in "+String(time_until_next_try));
+      delay(time_until_next_try);
+      return;
+    }
+
+    float temperature_to_send = temperature / reading_count;
+
+    Serial.println("| temperature_to_send: "+String(temperature_to_send));
+    Serial.println("| temperature: "+String(temperature));
+    Serial.println("| reading_count: "+String(reading_count));
+    Serial.println("| min: "+String(min));
+    Serial.println("| max: "+String(max));
+    Serial.println(" ");
+
+    String msg = "{\"sensor\": {{ node_id }}, \"key\": \"temp\", \"value\": "+String(temperature_to_send)+"}";
+
+    sprintf(sendbuffer,"%s", msg.c_str());
+    sendlength = msg.length();
+
+    if (USEACK) {
+      boolean ack_received = false;
+      boolean requestACK = true;
+
+      #if USE_EXPONENTIAL_BACKOFF
+
+      Serial.println("+----------------------------------");
+      Serial.println("| Sending temperature");
+      Serial.println("+----------------------------------");
+
+      unsigned long slot_time = 50; // 50ms
+      unsigned long slot_numbers = 2;
+      int retry_max = 10;
+      int retry_count = 0;
+      while (retry_count < retry_max && ! (ack_received)) {
+        Serial.println("| Try n="+String(retry_count));
+
+        unsigned long time_to_wait = slot_time * random(slot_numbers);
+
+        if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength, 2, time_to_wait))
+        {
+          ack_received = true;
+        }
+
+        if(!ack_received) {
+          Serial.println("| Still no ACK received, I will wait: "+String(time_to_wait));
+          delay(time_to_wait);
+        }
+
+        retry_count += 1;
+        slot_numbers = slot_numbers * 2;
+      }
+      #else
+      if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength)) {
+          Serial.println("| Success: ACK received!");
+          ack_received = true;
+      } else {
+          Serial.println("| Failure: no ACK received");
+          ack_received = false;
+      }
+      Serial.println(" ");
+      #endif
+
+      if (ack_received) {
+        Serial.println("| ACK received!");
+      }
+    } else {
+      radio.send(TONODEID, sendbuffer, sendlength);
+    }
+
     Blink(LED,10);
   }
-  */
-  cpt = (cpt + 1) % 100;
+
+
+  delay(200);
 }
 
 void Blink(byte PIN, int DELAY_MS)

@@ -22,11 +22,14 @@
 
 #include <Ethernet.h>
 #include <utility/w5100.h>
+#include <Bridge.h>
 
-EthernetClient client;
-unsigned long send_delay=1000;
-unsigned long next = 0 ;
-size_t buff_size=500;
+#include <MemoryFree.h>
+#define DEBUG_MEM false
+
+//unsigned long send_delay=1000;
+//unsigned long next = 0 ;
+//size_t buff_size=500;
 
 // Addresses for this node. CHANGE THESE FOR EACH NODE!
 
@@ -86,7 +89,7 @@ void setup() {
     radio.encrypt(ENCRYPTKEY);
 
 
-  Serial.println("Now configuring the ethernet conenction");
+  Serial.println("Now configuring the ethernet connection");
 
   Ethernet.select(4);
   byte mac[6] = { 0x00, 0x50, 0x56, 0x13, 0x37, 0x20 };
@@ -97,12 +100,13 @@ void setup() {
     Serial.print(Ethernet.localIP()[idx], DEC);
     if (idx != 3) Serial.print(F("."));
   }
-  Serial.println();
-  W5100.setRetransmissionTime(2000); //where each unit is 100us, so 0x07D0 (decimal 2000) means 200ms.
-  W5100.setRetransmissionCount(3); //That gives me a 3 second timeout on a bad server connection.
-  next = millis() + send_delay;
-}
 
+
+  Serial.println();
+  //W5100.setRetransmissionTime(2000); //where each unit is 100us, so 0x07D0 (decimal 2000) means 200ms.
+  //W5100.setRetransmissionCount(3); //That gives me a 3 second timeout on a bad server connection.
+  //next = millis() + send_delay;
+}
 
 void loop()
 {
@@ -111,63 +115,6 @@ void loop()
 
   static char sendbuffer[1000];
   static int sendlength = 0;
-
-  /*
-  // SENDING
-
-  // In this section, we'll gather serial characters and
-  // send them to the other node if we (1) get a carriage return,
-  // or (2) the buffer is full (61 characters).
-
-  // If there is any serial input, add it to the buffer:
-
-  if (Serial.available() > 0)
-  {
-    char input = Serial.read();
-
-    if (input != '\r') // not a carriage return
-    {
-      sendbuffer[sendlength] = input;
-      sendlength++;
-    }
-
-    // If the input is a carriage return, or the buffer is full:
-
-    if ((input == '\r') || (sendlength == 999)) // CR or buffer full
-    {
-      // Send the packet!
-
-
-      Serial.print("sending to node ");
-      Serial.print(TONODEID, DEC);
-      Serial.print(", message [");
-      for (byte i = 0; i < sendlength; i++)
-        Serial.print(sendbuffer[i]);
-      Serial.println("]");
-
-      // There are two ways to send packets. If you want
-      // acknowledgements, use sendWithRetry():
-
-      if (USEACK)
-      {
-        if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength))
-          Serial.println("ACK received!");
-        else
-          Serial.println("no ACK received");
-      }
-
-      // If you don't need acknowledgements, just use send():
-
-      else // don't use ACK
-      {
-        radio.send(TONODEID, sendbuffer, sendlength);
-      }
-
-      sendlength = 0; // reset the packet
-      Blink(LED,10);
-    }
-  }
-  */
 
   // RECEIVING
 
@@ -180,19 +127,53 @@ void loop()
 
     Serial.print("received from node ");
     Serial.print(radio.SENDERID, DEC);
-    Serial.print(", message [");
+    Serial.print(", message ");
 
-    // The actual message is contained in the DATA array,
-    // and is DATALEN bytes in size:
+    char* msg_buffer = (char*) malloc(radio.DATALEN + 1);
+    for (int i =0; i < radio.DATALEN; i++) {
+      msg_buffer[i] = (char) radio.DATA[i];
+    }
+    msg_buffer[radio.DATALEN] = 0;
+    Serial.println(msg_buffer);
 
-    for (byte i = 0; i < radio.DATALEN; i++)
-      Serial.print((char)radio.DATA[i]);
+    String msg_string = String(msg_buffer);
+
+    //String msg_string = "{\"sensor\": 2, \"key\": \"temp\", \"value\": 27}";
+    Serial.println(msg_string);
+
+    if (msg_string.indexOf("{\"sensor\":") != -1) {
+        Serial.println("I should forward '"+msg_string+"' via ethernet");
+
+        EthernetClient client;
+
+        if (client.connect("192.168.1.2", 8080)) {
+           client.println("POST /new_temp_reading HTTP/1.1");
+           client.println("Host: 192.168.1.2:8080");
+           client.println("Content-Type: application/json");
+           client.println("Connection: close");
+           client.print("Content-Length: ");
+           client.println(msg_string.length());
+           client.println();
+           client.println(msg_string);
+           client.println();
+        } else {
+            Serial.println("There was an issue with sending the POST request");
+        }
+
+        #ifdef DEBUG_MEM
+        # if DEBUG_MEM == true
+        Serial.print("freeMemory()=");
+        Serial.println(freeMemory());
+        # endif
+        #endif
+    }
+
 
     // RSSI is the "Receive Signal Strength Indicator",
     // smaller numbers mean higher power.
 
-    Serial.print("], RSSI ");
-    Serial.println(radio.RSSI);
+    //Serial.print("], RSSI ");
+    //Serial.println(radio.RSSI);
 
     // Send an ACK if requested.
     // (You don't need this code if you're not using ACKs.)
@@ -202,7 +183,11 @@ void loop()
       radio.sendACK();
       Serial.println("ACK sent");
     }
+
+    free(msg_buffer);
+
     Blink(LED,10);
+    //delay(50);
   }
 }
 
@@ -213,33 +198,3 @@ void Blink(byte PIN, int DELAY_MS)
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
 }
-
-/*
-void loop() {
-  unsigned long time = millis();
-  if (next<time) {
-    Ethernet.maintain();
-    next += send_delay;
-    if(next <= time) next = time+1;
-    if (client.connected()){
-      Serial.println("already connected");
-    } else {
-      Serial.print("connecting results : ");
-      Serial.println(client.connect("tarzan.info.emn.fr",80));
-    }
-    int sent = client.println("GET /ping.php HTTP/1.1");
-    sent = client.println(F("Host: tarzan.info.emn.fr"));
-    client.println();
-  }
-  if(client.connected() && client.available()>0){
-    Serial.println("client received data  : ");
-    unsigned char buffer[buff_size+1];
-    while(client.available()>0){
-      int  read = client.read(buffer, buff_size);
-      buffer[read]='\0';
-      Serial.println(read);
-    }
-  }
-}
-
-*/
