@@ -62,6 +62,18 @@
 
 RFM69 radio;
 
+void configure_ethernet() {
+  Ethernet.select(4);
+  byte mac[6] = { 0x00, 0x50, 0x56, 0x13, 0x37, 0x20 };
+  Ethernet.begin(mac);
+  Serial.print(F("My IP address: "));
+  for (size_t idx = 0; idx < 4; idx++) {
+    // print the value of each byte of the IP address:
+    Serial.print(Ethernet.localIP()[idx], DEC);
+    if (idx != 3) Serial.print(F("."));
+  }
+}
+
 void setup() {
 
   Serial.begin(9600);
@@ -90,16 +102,8 @@ void setup() {
 
 
   Serial.println("Now configuring the ethernet connection");
+  configure_ethernet();
 
-  Ethernet.select(4);
-  byte mac[6] = { 0x00, 0x50, 0x56, 0x13, 0x37, 0x20 };
-  Ethernet.begin(mac);
-  Serial.print(F("My IP address: "));
-  for (size_t idx = 0; idx < 4; idx++) {
-    // print the value of each byte of the IP address:
-    Serial.print(Ethernet.localIP()[idx], DEC);
-    if (idx != 3) Serial.print(F("."));
-  }
 
 
   Serial.println();
@@ -113,7 +117,7 @@ void loop()
   //Serial.println("LOOPING");
   // Set up a "buffer" for characters that we'll send:
 
-  static char sendbuffer[1000];
+  static char sendbuffer[500];
   static int sendlength = 0;
 
   // RECEIVING
@@ -123,8 +127,8 @@ void loop()
 
   if (radio.receiveDone()) // Got one!
   {
-    // Print out the information:
 
+    // Print out the information:
     Serial.print("received from node ");
     Serial.print(radio.SENDERID, DEC);
     Serial.print(", message ");
@@ -140,6 +144,15 @@ void loop()
 
     //String msg_string = "{\"sensor\": 2, \"key\": \"temp\", \"value\": 27}";
     Serial.println(msg_string);
+
+    // Send an ACK if requested.
+    if (radio.ACKRequested())
+    {
+      radio.sendACK();
+      Serial.println("ACK sent");
+    }
+
+    bool reset_ethernet = false;
 
     if (msg_string.indexOf("{\"sensor\":") != -1) {
         Serial.println("I should forward '"+msg_string+"' via ethernet");
@@ -158,7 +171,10 @@ void loop()
            client.println();
         } else {
             Serial.println("There was an issue with sending the POST request");
+            reset_ethernet = true;
         }
+
+        client.stop();
 
         #ifdef DEBUG_MEM
         # if DEBUG_MEM == true
@@ -166,22 +182,11 @@ void loop()
         Serial.println(freeMemory());
         # endif
         #endif
-    }
 
-
-    // RSSI is the "Receive Signal Strength Indicator",
-    // smaller numbers mean higher power.
-
-    //Serial.print("], RSSI ");
-    //Serial.println(radio.RSSI);
-
-    // Send an ACK if requested.
-    // (You don't need this code if you're not using ACKs.)
-
-    if (radio.ACKRequested())
-    {
-      radio.sendACK();
-      Serial.println("ACK sent");
+        if (reset_ethernet) {
+            Serial.println("I am resetting the Ethernet connection");
+            configure_ethernet();
+        }
     }
 
     free(msg_buffer);

@@ -49,6 +49,7 @@
 #define MAX_SEND     250 // maximum packet size
 
 #define USE_EXPONENTIAL_BACKOFF true
+#define BURST true
 
 // Create a library object for our RFM69HCW module:
 
@@ -82,7 +83,7 @@ void setup() {
 
 int cpt = 0;
 
-long int TIME_BETWEEN_TEMP_READING_MS = 1000 * 3;
+long int TIME_BETWEEN_TEMP_READING_MS = 50;
 unsigned long last_temp_reading = -1;
 
 void loop() {
@@ -109,6 +110,14 @@ void loop() {
     Serial.println("| Read temperature sensor");
     Serial.println("+----------------------------------");
 
+    float temperature_to_send = -1.0;
+
+    #if BURST
+    temperature_to_send = 25.0 + random(8.0);
+    Serial.println("| mode: BURST");
+    Serial.println("| temperature_to_send: "+String(temperature_to_send));
+    Serial.println(" ");
+    #else
     float temperature = 0.0;
     int reading_count = 0;
 
@@ -135,7 +144,7 @@ void loop() {
       return;
     }
 
-    float temperature_to_send = temperature / reading_count;
+    temperature_to_send = temperature / reading_count;
 
     Serial.println("| temperature_to_send: "+String(temperature_to_send));
     Serial.println("| temperature: "+String(temperature));
@@ -143,6 +152,7 @@ void loop() {
     Serial.println("| min: "+String(min));
     Serial.println("| max: "+String(max));
     Serial.println(" ");
+    #endif
 
     String msg = "{\"sensor\": {{ node_id }}, \"key\": \"temp\", \"value\": "+String(temperature_to_send)+"}";
 
@@ -159,14 +169,14 @@ void loop() {
       Serial.println("| Sending temperature");
       Serial.println("+----------------------------------");
 
-      unsigned long slot_time = 50; // 50ms
+      unsigned long slot_time = 50 + {{node_id}} * 10; // default: 50ms
       unsigned long slot_numbers = 2;
       int retry_max = 10;
       int retry_count = 0;
       while (retry_count < retry_max && ! (ack_received)) {
         Serial.println("| Try n="+String(retry_count));
 
-        unsigned long time_to_wait = slot_time * random(slot_numbers);
+        unsigned long time_to_wait = slot_time * (1 + random(slot_numbers - 1));
 
         if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength, 2, time_to_wait))
         {
@@ -179,7 +189,8 @@ void loop() {
         }
 
         retry_count += 1;
-        slot_numbers = slot_numbers * 2;
+        //slot_numbers = slot_numbers * 2;
+        slot_numbers = slot_numbers + 1;
       }
       #else
       if (radio.sendWithRetry(TONODEID, sendbuffer, sendlength)) {
@@ -202,8 +213,7 @@ void loop() {
     Blink(LED,10);
   }
 
-
-  delay(200);
+  //delay(200);
 }
 
 void Blink(byte PIN, int DELAY_MS)
