@@ -1,3 +1,4 @@
 platformio
 shutil
 pyserial
+docopt

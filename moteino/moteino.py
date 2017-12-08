@@ -79,6 +79,7 @@ def compile_ino_project(project, variables=None):
     ret_code = subprocess.call("cd %s; pio run" % (temp_project_path), shell=True, stdout=FNULL, close_fds=True)
 
     firmware_hex_path = "%s/.pioenvs/uno/firmware.hex" % (temp_project_path)
+    firmware_bin_path = "%s/.pioenvs/esp12e/firmware.bin" % (temp_project_path)
     if ret_code == 0 and os.path.exists(firmware_hex_path):
         firmware_hex_absolute_path = os.path.abspath(firmware_hex_path)
         return {
@@ -86,8 +87,18 @@ def compile_ino_project(project, variables=None):
             "variables": variables,
             "name": project["name"],
             "temp_project_path": temp_project_path,
-            "firmware_hex_path": firmware_hex_path,
-            "firmware_hex_absolute_path": firmware_hex_absolute_path
+            "firmware_path": firmware_hex_path,
+            "firmware_absolute_path": firmware_hex_absolute_path
+        }
+    elif ret_code == 0 and os.path.exists(firmware_bin_path):
+        firmware_bin_absolute_path = os.path.abspath(firmware_bin_path)
+        return {
+            "project": project,
+            "variables": variables,
+            "name": project["name"],
+            "temp_project_path": temp_project_path,
+            "firmware_path": firmware_bin_path,
+            "firmware_absolute_path": firmware_bin_absolute_path
         }
     else:
         return None
@@ -108,7 +119,7 @@ def get_devices():
             device = {
                 "name": name,
                 "location": line,
-                "type": "usb" if "usb" in name else "unknown"
+                "type": "usb" if "usb" in name.lower() else "unknown"
             }
             devices += [device]
         elif line.startswith("Hardware ID:"):

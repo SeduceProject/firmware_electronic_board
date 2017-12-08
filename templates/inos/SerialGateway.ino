@@ -1,26 +1,8 @@
-/*
- * UIPEthernet TcpClient example.
- *
- * UIPEthernet is a TCP/IP stack that can be used with a enc28j60 based
- * Ethernet-shield.
- *
- * UIPEthernet uses the fine uIP stack by Adam Dunkels <adam@sics.se>
- *
- *      -----------------
- *
- * This TcpClient example gets its local ip-address via dhcp and sets
- * up a tcp socket-connection to 192.168.0.1 port 5000 every 5 Seconds.
- * After sending a message it waits for a response. After receiving the
- * response the client disconnects and tries to reconnect after 5 seconds.
- *
- * Copyright (C) 2013 by Norbert Truchsess <norbert.truchsess@t-online.de>
- */
 #include <Arduino.h>
 
 #include <RFM69.h>
 #include <SPI.h>
 
-#include <Ethernet.h>
 #include <utility/w5100.h>
 #include <Bridge.h>
 
@@ -62,18 +44,6 @@
 
 RFM69 radio;
 
-void configure_ethernet() {
-  Ethernet.select(4);
-  byte mac[6] = { 0x00, 0x50, 0x56, 0x13, 0x37, 0x20 };
-  Ethernet.begin(mac);
-  Serial.print(F("My IP address: "));
-  for (size_t idx = 0; idx < 4; idx++) {
-    // print the value of each byte of the IP address:
-    Serial.print(Ethernet.localIP()[idx], DEC);
-    if (idx != 3) Serial.print(F("."));
-  }
-}
-
 void setup() {
 
   Serial.begin(9600);
@@ -99,11 +69,6 @@ void setup() {
 
   if (ENCRYPT)
     radio.encrypt(ENCRYPTKEY);
-
-
-  Serial.println("Now configuring the ethernet connection");
-  configure_ethernet();
-
 
 
   Serial.println();
@@ -141,8 +106,6 @@ void loop()
     Serial.println(msg_buffer);
 
     String msg_string = String(msg_buffer);
-
-    //String msg_string = "{\"sensor\": 2, \"key\": \"temp\", \"value\": 27}";
     Serial.println(msg_string);
 
     // Send an ACK if requested.
@@ -150,47 +113,6 @@ void loop()
     {
       radio.sendACK();
       Serial.println("ACK sent");
-    }
-
-    bool reset_ethernet = false;
-
-    if (msg_string.indexOf("{\"sensor\":") != -1) {
-        Serial.println("I should forward '"+msg_string+"' via ethernet");
-
-        EthernetClient client;
-
-        if (client.connect("{{project.variables.webservice_host}}", {{project.variables.webservice_port}})) {
-           Serial.println("Sending POST request");
-           client.println("POST /new_temp_reading HTTP/1.1");
-           client.println("Host: {{project.variables.webservice_host}}:{{project.variables.webservice_port}}");
-           client.println("Content-Type: application/json");
-           client.println("Connection: close");
-           client.print("Content-Length: ");
-           client.println(msg_string.length());
-           client.println();
-           client.println(msg_string);
-           client.println();
-           Serial.println("POST request has been sent!");
-        } else {
-            Serial.println("There was an issue with sending the POST request");
-            reset_ethernet = true;
-        }
-
-        Serial.println("<before stopping client>");
-        client.stop();
-        Serial.println("<after stopping client>");
-
-        #ifdef DEBUG_MEM
-        # if DEBUG_MEM == true
-        Serial.print("freeMemory()=");
-        Serial.println(freeMemory());
-        # endif
-        #endif
-
-        if (reset_ethernet) {
-            Serial.println("I am resetting the Ethernet connection");
-            configure_ethernet();
-        }
     }
 
     Serial.println("<before freeing>");
