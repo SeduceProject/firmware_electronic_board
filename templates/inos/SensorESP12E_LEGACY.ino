@@ -47,8 +47,6 @@ OneWire oneWire(ONE_WIRE_BUS);
 
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
-DeviceAddress* addresses[20];
-int current_device_count = 0;
 
 // function to convert a device address to a String
 String deviceAddressToString(DeviceAddress deviceAddress)
@@ -78,63 +76,62 @@ void setup() {
   WiFi.begin(ssid, password);
 }
 
-void rescan_devices() {
-  current_device_count = sensors.getDeviceCount();
-  for (int deviceIndex = 0; deviceIndex< current_device_count; deviceIndex++) {
-      DeviceAddress deviceAddress;
-      sensors.getAddress(deviceAddress, deviceIndex);
-
-      addresses[deviceIndex] = (DeviceAddress*) malloc(sizeof(DeviceAddress));
-      memcpy(addresses[deviceIndex], &deviceAddress, sizeof(DeviceAddress));
-      sensors.setResolution(deviceAddress, 10);
-  }
-}
-
-int cpt = 0;
-
 void loop() {
-
-  if (cpt == 0) {
-    // Start up the library
-    sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
-  }
+  // Start up the library
+  sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
 
   // call sensors.requestTemperatures() to issue a global temperature
   // request to all devices on the bus
   sensors.requestTemperatures(); // Send the command to get temperatures
 
-  Serial.println("looop "+String(current_device_count));
 
-  if (sensors.getDeviceCount() != current_device_count) {
-    rescan_devices();
-  }
+  for (int deviceIndex = 0; deviceIndex< sensors.getDeviceCount(); deviceIndex++) {
+      DeviceAddress deviceAddress;
+      sensors.getAddress(deviceAddress, deviceIndex);
 
-  String msg = "[";
-  for (int deviceIndex = 0; deviceIndex< current_device_count; deviceIndex++) {
-      DeviceAddress *deviceAddress = addresses[deviceIndex];
-      float temperature = sensors.getTempC(*deviceAddress);
-      String macAddressAsString = deviceAddressToString(*deviceAddress);
+      float temperature = sensors.getTempCByIndex(deviceIndex);
+      String macAddressAsString = deviceAddressToString(deviceAddress);
 
-      Serial.println("["+String(deviceIndex)+"] "+macAddressAsString+" --> "+String(temperature));
-      Serial.print(sensors.getResolution(*deviceAddress), DEC);
 
-      // Perform an HTTP get request
-      if (deviceIndex > 0) {
-        msg += ",";
+      if (temperature != -127.00) {
+        static char sendbuffer[250];
+        static int sendlength = 0;
+
+        Serial.println(" ");
+        Serial.println("+----------------------------------");
+        Serial.println("| Read temperature sensor");
+        Serial.println("+----------------------------------");
+
+        delay(50); // This pause prevent the Arduino to crashes when using a very long cable ?!?
+
+        Serial.println("| temperature_to_send: "+String(temperature));
+        Serial.println("| sensor: "+String(deviceIndex));
+        Serial.println("| mac_address: "+macAddressAsString);
+        Serial.println(" ");
+
+        String msg = "{\"sensor\":\""+macAddressAsString+"\",\"t\":\"T\",\"v\":"+String(temperature)+"}";
+
+        sprintf(sendbuffer,"%s", msg.c_str());
+        sendlength = msg.length();
+
+        // Perform an HTTP get request
+        HTTPClient http;
+        http.begin("http://{{project.variables.webservice_host}}:{{project.variables.webservice_port}}/new_temp_reading");
+        http.addHeader("Content-Type", "application/json");
+        int httpCode = http.POST(msg);
+        String payload = http.getString();
+        http.end();
+
+        Blink(LED_BUILTIN, 10);
       }
-      msg += "{\"sensor\":\""+macAddressAsString+"\",\"t\":\"T\",\"v\":"+String(temperature)+"}";
   }
-  msg += "]";
 
-  HTTPClient http;
-  http.begin("http://{{project.variables.webservice_host}}:{{project.variables.webservice_port}}/temperature/list");
-  http.addHeader("Content-Type", "application/json");
-  int httpCode = http.POST(msg);
-  String payload = http.getString();
-  http.end();
-  Serial.println("Sensors: "+String(current_device_count));
+  Serial.println("I am going to sleep");
 
-  cpt = (cpt + 1) % 10;
+  delay(100);
+  // Sleep
+  //ESP.deepSleep(MINIMUM_PAUSE_BETWEEN_LOOP_CALLS * 1000);
+  delay(30 * 1000);
 }
 
 void Blink(byte PIN, int DELAY_MS)

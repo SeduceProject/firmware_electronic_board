@@ -63,7 +63,7 @@ if __name__ == "__main__":
         usb_devices = moteino.get_usb_devices()
 
         if len(usb_devices) < 1:
-            print("ERROR: this script needs at least 1 device to illustrate ethernet and RF69")
+            print("ERROR: this script needs at least 1 device to upload the firmware")
             sys.exit(1)
 
         sensor_usb_device = usb_devices[-1]
