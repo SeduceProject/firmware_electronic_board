@@ -79,7 +79,6 @@ void setup() {
 
 void loop()
 {
-  Serial.println("<begin loop>");
   // Set up a "buffer" for characters that we'll send:
 
   static char sendbuffer[500];
@@ -92,12 +91,6 @@ void loop()
 
   if (radio.receiveDone()) // Got one!
   {
-
-    // Print out the information:
-    Serial.print("received from node ");
-    Serial.print(radio.SENDERID, DEC);
-    Serial.print(", message ");
-
     char* msg_buffer = (char*) malloc(radio.DATALEN + 1);
     for (int i =0; i < radio.DATALEN; i++) {
       msg_buffer[i] = (char) radio.DATA[i];
@@ -112,17 +105,12 @@ void loop()
     if (radio.ACKRequested())
     {
       radio.sendACK();
-      Serial.println("ACK sent");
     }
 
-    Serial.println("<before freeing>");
     free(msg_buffer);
-    Serial.println("<after freeing>");
 
     Blink(LED,10);
-    //delay(50);
   }
-  Serial.println("<end loop>");
 }
 
 void Blink(byte PIN, int DELAY_MS)

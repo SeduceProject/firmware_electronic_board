@@ -56,9 +56,9 @@ String deviceAddressToString(DeviceAddress deviceAddress)
   String result = "";
   for (uint8_t i = 0; i < 8; i++)
   {
-    if (i > 0) {
-      result += ":";
-    }
+    /* if (i > 0) { */
+    /*   result += ":"; */
+    /* } */
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) result += "0";
     result += String(deviceAddress[i], HEX);
@@ -79,14 +79,18 @@ void setup() {
 }
 
 void rescan_devices() {
+   for (int deviceIndex = 0; deviceIndex < current_device_count; deviceIndex++) {
+      DeviceAddress *address = addresses[deviceIndex];
+      free(address);
+  }
   current_device_count = sensors.getDeviceCount();
-  for (int deviceIndex = 0; deviceIndex< current_device_count; deviceIndex++) {
+  for (int deviceIndex = 0; deviceIndex < current_device_count; deviceIndex++) {
       DeviceAddress deviceAddress;
       sensors.getAddress(deviceAddress, deviceIndex);
 
       addresses[deviceIndex] = (DeviceAddress*) malloc(sizeof(DeviceAddress));
       memcpy(addresses[deviceIndex], &deviceAddress, sizeof(DeviceAddress));
-      sensors.setResolution(deviceAddress, 10);
+      sensors.setResolution(deviceAddress, 11);
   }
 }
 
@@ -94,7 +98,9 @@ int cpt = 0;
 
 void loop() {
 
-  if (cpt == 0) {
+  Serial.println("<looping>");
+  
+  if (cpt == 0 || current_device_count == 0) {
     // Start up the library
     sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
   }
@@ -134,7 +140,7 @@ void loop() {
   http.end();
   Serial.println("Sensors: "+String(current_device_count));
 
-  cpt = (cpt + 1) % 10;
+  cpt = (cpt + 1) % (3 * current_device_count + 1);
 }
 
 void Blink(byte PIN, int DELAY_MS)
