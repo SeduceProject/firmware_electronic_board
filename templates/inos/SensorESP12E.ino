@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////////
 
 // variables related to WIFI
-char ssid[] = "b232_iot_network";     //  your network SSID (name)
+char ssid[] = "b232_iot_network2";     //  your network SSID (name)
 char password[] = "iotnetwork";  // your network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
@@ -76,21 +76,33 @@ void setup() {
 
   // Initialize the WIFI:
   WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+	delay(500);
+	Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  // Allocate 20 addresses
+  for (int deviceIndex = 0; deviceIndex < 20; deviceIndex++) {
+    addresses[deviceIndex] = (DeviceAddress*) malloc(sizeof(DeviceAddress));
+  }
 }
 
+DeviceAddress tempDeviceAddress;
 void rescan_devices() {
-   for (int deviceIndex = 0; deviceIndex < current_device_count; deviceIndex++) {
-      DeviceAddress *address = addresses[deviceIndex];
-      free(address);
-  }
+  /*  for (int deviceIndex = 0; deviceIndex < current_device_count; deviceIndex++) { */
+  /*     DeviceAddress *address = addresses[deviceIndex]; */
+  /*     free(address); */
+  /* } */
   current_device_count = sensors.getDeviceCount();
   for (int deviceIndex = 0; deviceIndex < current_device_count; deviceIndex++) {
-      DeviceAddress deviceAddress;
-      sensors.getAddress(deviceAddress, deviceIndex);
+      sensors.getAddress(tempDeviceAddress, deviceIndex);
 
-      addresses[deviceIndex] = (DeviceAddress*) malloc(sizeof(DeviceAddress));
-      memcpy(addresses[deviceIndex], &deviceAddress, sizeof(DeviceAddress));
-      sensors.setResolution(deviceAddress, 11);
+      //addresses[deviceIndex] = (DeviceAddress*) malloc(sizeof(DeviceAddress));
+      sensors.setResolution(tempDeviceAddress, 11);
+      memcpy(addresses[deviceIndex], &tempDeviceAddress, sizeof(DeviceAddress));
   }
 }
 
@@ -98,23 +110,31 @@ int cpt = 0;
 
 void loop() {
 
-  Serial.println("<looping>");
+  Serial.println("Waking up");
   
   if (cpt == 0 || current_device_count == 0) {
+    Serial.println("Sensors.begin");
     // Start up the library
     sensors.begin(); // IC Default 9 bit. If you have troubles consider upping it 12. Ups the delay giving the IC more time to process the temperature measurement
+    Serial.println("  - Sensors.begin: done");
   }
 
   // call sensors.requestTemperatures() to issue a global temperature
   // request to all devices on the bus
+  
+  Serial.println("Requesting temperatures");
   sensors.requestTemperatures(); // Send the command to get temperatures
-
-  Serial.println("looop "+String(current_device_count));
+  Serial.println(" - done");
+  
+  Serial.println("Current_device_count: "+String(current_device_count));
 
   if (sensors.getDeviceCount() != current_device_count) {
+    Serial.println("scanning devices");
     rescan_devices();
+    Serial.println("  - scanning devices: done");
   }
 
+  Serial.println("building message from temperatures");
   String msg = "[";
   for (int deviceIndex = 0; deviceIndex< current_device_count; deviceIndex++) {
       DeviceAddress *deviceAddress = addresses[deviceIndex];
@@ -122,7 +142,7 @@ void loop() {
       String macAddressAsString = deviceAddressToString(*deviceAddress);
 
       Serial.println("["+String(deviceIndex)+"] "+macAddressAsString+" --> "+String(temperature));
-      Serial.print(sensors.getResolution(*deviceAddress), DEC);
+      /* Serial.print(sensors.getResolution(*deviceAddress), DEC); */
 
       // Perform an HTTP get request
       if (deviceIndex > 0) {
@@ -131,16 +151,28 @@ void loop() {
       msg += "{\"sensor\":\""+macAddressAsString+"\",\"t\":\"T\",\"v\":"+String(temperature)+"}";
   }
   msg += "]";
+  Serial.println("  - building message from temperatures: done");
 
+  Serial.println("Doing an HTTP request to the webservice");
   HTTPClient http;
+  Serial.println("   - http.begin");
   http.begin("http://{{project.variables.webservice_host}}:{{project.variables.webservice_port}}/temperature/list");
+  Serial.println("   - http.addHeader");
   http.addHeader("Content-Type", "application/json");
+  Serial.println("   - http.Post");
   int httpCode = http.POST(msg);
-  String payload = http.getString();
+  /* Serial.println("   - http.getString"); */
+  /* String payload = http.getString(); */
+  /* Serial.println("     -> response: '"+payload+"'"); */
+  Serial.println("   - http.end");
   http.end();
-  Serial.println("Sensors: "+String(current_device_count));
+
+  Serial.println("end of loop");
 
   cpt = (cpt + 1) % (3 * current_device_count + 1);
+
+  /* Serial.println("Sleeping 5 seconds"); */
+  /* delay(5000); */
 }
 
 void Blink(byte PIN, int DELAY_MS)
