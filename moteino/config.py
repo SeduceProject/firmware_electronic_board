@@ -32,7 +32,7 @@ config = {
             "name": "SensorESP12E",
             "file": "templates/inos/SensorESP12E.ino",
             "variables": {
-                "webservice_host": "192.168.1.4",
+                "webservice_host": "192.168.1.30",
                 "webservice_port": 8080
             }
         }
