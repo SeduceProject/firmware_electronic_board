@@ -32,8 +32,16 @@ config = {
             "name": "SensorESP12E",
             "file": "templates/inos/SensorESP12E.ino",
             "variables": {
-                "webservice_host": "192.168.1.30",
-                "webservice_port": 8080
+                "webservice_host": "seduce.fr",
+                "webservice_port": 1138
+            }
+        },
+        {
+            "name": "SensorTC",
+            "file": "templates/inos/SensorTC.ino",
+            "variables": {
+                "webservice_host": "seduce.fr",
+                "webservice_port": 1138
             }
         }
     ]

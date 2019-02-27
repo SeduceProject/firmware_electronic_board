@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////////
 
 // variables related to WIFI
-char ssid[] = "b232_iot_network2";     //  your network SSID (name)
+char ssid[] = "b232_iot_network";     //  your network SSID (name)
 char password[] = "iotnetwork";  // your network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
