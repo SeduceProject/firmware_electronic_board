@@ -12,8 +12,8 @@
 ///////////////////////////////////////////////////////
 
 // variables related to WIFI
-char ssid[] = "b232_iot_network";     //  your network SSID (name)
-char password[] = "iotnetwork";  // your network password
+char ssid[] = "CloudNet";     //  your network SSID (name)
+char password[] = "CloudNet";  // your network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 ///////////////////////////////////////////////////////
@@ -26,26 +26,26 @@ int status = WL_IDLE_STATUS;     // the Wifi radio's status
 #define TYPE_DS18B20 1
 #define TYPE_DS18S22 2
 #define TYPE_MAX31850 3
-OneWire  ds(D3);  // on pin 10 (a 4.7K pullup resistor is necessary)
+OneWire  ds(D5);  // on pin 10 (a 4.7K pullup resistor is necessary)
 DallasTemperature sensors(&ds);
 
 float calibrationMap[16][8] = {
-  { -0.22, -0.07, 0.05, 0.23, 0.27, 0.41, 0.27, 0.28 },
-  { -1.33, -0.93, -0.30, -0.11, -0.02, 0.07, 0.02, 0.31 },
-  { -0.86, -0.64, -0.12, -0.10, 0.21, 0.10, 0.30, 0.24 },
-  { -1.39, -1.32, -0.90, -0.77, -0.33, -0.49, -0.51, -0.48 },
-  { -1.57, -1.16, -0.94, -0.66, -0.58, -0.47, -0.48, -0.52 },
-  { -1.19, -0.68, -0.45, -0.09, -0.12, 0.03, 0.08, 0.02 },
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
   {0, 0, 0, 0, 0, 0, 0, 0},
-  { -1.19, -0.94, -0.62, -0.47, -0.35, -0.33, -0.25, -0.25 },
-  { -0.88, -0.29, -0.07, 0.30, 0.48, 0.51, 0.57, 0.65 },
-  { -1.13, -0.47, -0.31, -0.04, 0.11, 0.18, 0.23, 0.33 },
-  { -1.36, -0.68, -0.24, 0.06, 0.28, 0.47, 0.39, 0.24 },
-  { -1.14, -0.50, -0.24, -0.02, 0.21, 0.43, 0.49, 0.47 },
-  { -1.51, -1.07, -0.69, -0.42, -0.23, 0.02, -0.16, -0.08 }
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 // function to convert a device address to a String
@@ -152,49 +152,49 @@ float getCalibratedTemperature(int deviceIndex, float uncalibratedTemperature) {
   return uncalibratedTemperature + correction;
 }
 
-float getTempC_raw(DeviceAddress* devAddr) {
-  byte addr[8];
-  byte i;
-  byte present = 0;
-  byte temptype;
-  byte data[12];
-  float celsius, fahrenheit;
+/* float getTempC_raw(DeviceAddress* devAddr) { */
+/*   byte addr[8]; */
+/*   byte i; */
+/*   byte present = 0; */
+/*   byte temptype; */
+/*   byte data[12]; */
+/*   float celsius, fahrenheit; */
 
-  for (i=0; i<8; i++) {
-    addr[i] = *devAddr[i];
-  }
+/*   for (i=0; i<8; i++) { */
+/*     addr[i] = *devAddr[i]; */
+/*   } */
 
-  if (OneWire::crc8(addr, 7) != addr[7]) {
-      return sqrt(-1);
-  } 
+/*   if (OneWire::crc8(addr, 7) != addr[7]) { */
+/*       return sqrt(-1); */
+/*   }  */
 
-  ds.reset();
-  ds.select(addr);
-  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
+/*   ds.reset(); */
+/*   ds.select(addr); */
+/*   ds.write(0x44, 1);        // start conversion, with parasite power on at the end */
   
-  delay(750);     // maybe 750ms is enough, maybe not
-  // we might do a ds.depower() here, but the reset will take care of it.
+/*   delay(750);     // maybe 750ms is enough, maybe not */
+/*   // we might do a ds.depower() here, but the reset will take care of it. */
   
-  present = ds.reset();
-  ds.select(addr);    
-  ds.write(0xBE);
+/*   present = ds.reset(); */
+/*   ds.select(addr);     */
+/*   ds.write(0xBE); */
   
-  for ( i = 0; i < 9; i++) {           // we need 9 bytes
-    data[i] = ds.read();
-  }
+/*   for ( i = 0; i < 9; i++) {           // we need 9 bytes */
+/*     data[i] = ds.read(); */
+/*   } */
   
-  int16_t raw = (data[1] << 8) | data[0];
-  if (raw & 0x01) {
-    return sqrt(-1);
-  }
-  celsius = (float)raw / 16.0;
-  fahrenheit = celsius * 1.8 + 32.0;
-  Serial.print("  *Temperature = ");
-  Serial.print(celsius);
-  Serial.print(" *Celsius, ");
-  Serial.print(fahrenheit);
-  Serial.println(" *Fahrenheit");
-}
+/*   int16_t raw = (data[1] << 8) | data[0]; */
+/*   if (raw & 0x01) { */
+/*     return sqrt(-1); */
+/*   } */
+/*   celsius = (float)raw / 16.0; */
+/*   fahrenheit = celsius * 1.8 + 32.0; */
+/*   Serial.print("  *Temperature = "); */
+/*   Serial.print(celsius); */
+/*   Serial.print(" *Celsius, "); */
+/*   Serial.print(fahrenheit); */
+/*   Serial.println(" *Fahrenheit"); */
+/* } */
 
 float askTemperature(DeviceAddress devAddr) {
   byte i;
@@ -210,7 +210,7 @@ float askTemperature(DeviceAddress devAddr) {
 
   if (OneWire::crc8(addr, 7) != addr[7]) {
       return sqrt(-1);
-  } 
+  }
 
   
   ds.reset();
@@ -220,56 +220,56 @@ float askTemperature(DeviceAddress devAddr) {
   return -1;
 }
 
-float getTempC_raw(DeviceAddress devAddr) {
-  byte i;
-  byte present = 0;
-  byte temptype;
-  byte data[12];
-  float celsius, fahrenheit;
-  byte addr[8];
+/* float getTempC_raw(DeviceAddress devAddr) { */
+/*   byte i; */
+/*   byte present = 0; */
+/*   byte temptype; */
+/*   byte data[12]; */
+/*   float celsius, fahrenheit; */
+/*   byte addr[8]; */
 
-  for(int i = 0; i < 8; i++) {
-    addr[i] = devAddr[i];
-  }
+/*   for(int i = 0; i < 8; i++) { */
+/*     addr[i] = devAddr[i]; */
+/*   } */
 
-  if (OneWire::crc8(addr, 7) != addr[7]) {
-      return sqrt(-1);
-  } 
+/*   if (OneWire::crc8(addr, 7) != addr[7]) { */
+/*       return sqrt(-1); */
+/*   }  */
 
-  /*
-  ds.reset();
-  ds.select(addr);
-  ds.write(0x44, 1);        // start conversion, with parasite power on at the end
+/*   /\* */
+/*   ds.reset(); */
+/*   ds.select(addr); */
+/*   ds.write(0x44, 1);        // start conversion, with parasite power on at the end */
   
-  delay(100);     // maybe 750ms is enough, maybe not
-  // we might do a ds.depower() here, but the reset will take care of it.
-  */
+/*   delay(100);     // maybe 750ms is enough, maybe not */
+/*   // we might do a ds.depower() here, but the reset will take care of it. */
+/*   *\/ */
   
-  present = ds.reset();
-  ds.select(addr);    
-  ds.write(0xBE);
+/*   present = ds.reset(); */
+/*   ds.select(addr);     */
+/*   ds.write(0xBE); */
   
-  for ( i = 0; i < 9; i++) {           // we need 9 bytes
-    data[i] = ds.read();
-  }
+/*   for ( i = 0; i < 9; i++) {           // we need 9 bytes */
+/*     data[i] = ds.read(); */
+/*   } */
   
-  int16_t raw = (data[1] << 8) | data[0];
-  if (raw & 0x01) {
-    return sqrt(-1);
-  }
-  celsius = (float)raw / 16.0;
-  fahrenheit = celsius * 1.8 + 32.0;
+/*   int16_t raw = (data[1] << 8) | data[0]; */
+/*   if (raw & 0x01) { */
+/*     return sqrt(-1); */
+/*   } */
+/*   celsius = (float)raw / 16.0; */
+/*   fahrenheit = celsius * 1.8 + 32.0; */
 
-  /*
-  Serial.print("  *Temperature = ");
-  Serial.print(celsius);
-  Serial.print(" *Celsius, ");
-  Serial.print(fahrenheit);
-  Serial.println(" *Fahrenheit");
-  */
+/*   /\* */
+/*   Serial.print("  *Temperature = "); */
+/*   Serial.print(celsius); */
+/*   Serial.print(" *Celsius, "); */
+/*   Serial.print(fahrenheit); */
+/*   Serial.println(" *Fahrenheit"); */
+/*   *\/ */
 
-  return celsius;
-}
+/*   return celsius; */
+/* } */
 
 void setup(void) {
   Serial.begin(9600);
@@ -299,16 +299,18 @@ void loop(void) {
     }
   }
   
-  Serial.println("Asking temperatures");
+  /* Serial.println("Asking temperatures"); */
   
-  for (int deviceIndex = 0; deviceIndex < 16; deviceIndex++) {
-    DeviceAddress* devAddrPtr = addresses[deviceIndex];
-    askTemperature(*devAddrPtr);
-  }
-  Serial.println(" -> Done asking temperatures");
-  delay(850);
-  //sensors.begin();
-  //sensors.requestTemperatures();
+  /* for (int deviceIndex = 0; deviceIndex < 16; deviceIndex++) { */
+  /*   DeviceAddress* devAddrPtr = addresses[deviceIndex]; */
+  /*   askTemperature(*devAddrPtr); */
+  /* } */
+  /* Serial.println(" -> Done asking temperatures"); */
+  /* delay(850); */
+  
+  sensors.begin();
+  sensors.requestTemperatures();
+  
   Serial.println("Iterating over sensors");
 
   String msg = "[";
@@ -326,14 +328,13 @@ void loop(void) {
       if (!isnan(temperature) && temperature > 0) {        
         Serial.println("["+String(deviceIndex)+"] --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
         
-        // Perform an HTTP get request
         if (count > 0) {
           msg += ",";
         }
         msg += "{\"sensor\":\""+String(macAddressAsString)+"\",\"t\":\"T\",\"v\":"+String(calibratedTemperature)+"}";
         count += 1;
       }
-    
+      delay(100);
   }
   msg += "]";
 
@@ -342,8 +343,9 @@ void loop(void) {
   Serial.println("I will send data to the temperature service");
   HTTPClient http;
   //http.begin("http://192.168.1.50:8080/temperature/list");
-  http.begin("http://192.168.1.30:8080/temperature/list");
+  http.begin("http://10.1.0.4:8080/temperature/list");
   http.addHeader("Content-Type", "application/json");
+  // Perform an HTTP POST request
   int httpCode = http.POST(msg);
   String payload = http.getString();
   http.end();
