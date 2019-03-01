@@ -325,7 +325,7 @@ void loop(void) {
       float calibratedTemperature = getCalibratedTemperature(deviceIndex, temperature);
       String macAddressAsString = deviceAddressToString(*devAddrPtr);
 
-      if (!isnan(temperature) && temperature > 0) {        
+      if (!isnan(temperature) && temperature > -10) {
         Serial.println("["+String(deviceIndex)+"] --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
         
         if (count > 0) {
