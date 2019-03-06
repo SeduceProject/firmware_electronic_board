@@ -54,9 +54,6 @@ String deviceAddressToString(DeviceAddress deviceAddress)
   String result = "";
   for (uint8_t i = 0; i < 8; i++)
   {
-    //if (i > 0) {
-    //  result += ":";
-    //}
     // zero pad the address if necessary
     if (deviceAddress[i] < 16) result += "0";
     result += String(deviceAddress[i], HEX);
@@ -152,124 +149,6 @@ float getCalibratedTemperature(int deviceIndex, float uncalibratedTemperature) {
   return uncalibratedTemperature + correction;
 }
 
-/* float getTempC_raw(DeviceAddress* devAddr) { */
-/*   byte addr[8]; */
-/*   byte i; */
-/*   byte present = 0; */
-/*   byte temptype; */
-/*   byte data[12]; */
-/*   float celsius, fahrenheit; */
-
-/*   for (i=0; i<8; i++) { */
-/*     addr[i] = *devAddr[i]; */
-/*   } */
-
-/*   if (OneWire::crc8(addr, 7) != addr[7]) { */
-/*       return sqrt(-1); */
-/*   }  */
-
-/*   ds.reset(); */
-/*   ds.select(addr); */
-/*   ds.write(0x44, 1);        // start conversion, with parasite power on at the end */
-  
-/*   delay(750);     // maybe 750ms is enough, maybe not */
-/*   // we might do a ds.depower() here, but the reset will take care of it. */
-  
-/*   present = ds.reset(); */
-/*   ds.select(addr);     */
-/*   ds.write(0xBE); */
-  
-/*   for ( i = 0; i < 9; i++) {           // we need 9 bytes */
-/*     data[i] = ds.read(); */
-/*   } */
-  
-/*   int16_t raw = (data[1] << 8) | data[0]; */
-/*   if (raw & 0x01) { */
-/*     return sqrt(-1); */
-/*   } */
-/*   celsius = (float)raw / 16.0; */
-/*   fahrenheit = celsius * 1.8 + 32.0; */
-/*   Serial.print("  *Temperature = "); */
-/*   Serial.print(celsius); */
-/*   Serial.print(" *Celsius, "); */
-/*   Serial.print(fahrenheit); */
-/*   Serial.println(" *Fahrenheit"); */
-/* } */
-
-/* float askTemperature(DeviceAddress devAddr) { */
-/*   byte i; */
-/*   byte present = 0; */
-/*   byte temptype; */
-/*   byte data[12]; */
-/*   float celsius, fahrenheit; */
-/*   byte addr[8]; */
-
-/*   for(int i = 0; i < 8; i++) { */
-/*     addr[i] = devAddr[i]; */
-/*   } */
-
-/*   if (OneWire::crc8(addr, 7) != addr[7]) { */
-/*       return sqrt(-1); */
-/*   } */
-
-  
-/*   ds.reset(); */
-/*   ds.select(addr); */
-/*   ds.write(0x44, 1);        // start conversion, with parasite power on at the end */
-
-/*   return -1; */
-}
-
-/* float getTempC_raw(DeviceAddress devAddr) { */
-/*   byte i; */
-/*   byte present = 0; */
-/*   byte temptype; */
-/*   byte data[12]; */
-/*   float celsius, fahrenheit; */
-/*   byte addr[8]; */
-
-/*   for(int i = 0; i < 8; i++) { */
-/*     addr[i] = devAddr[i]; */
-/*   } */
-
-/*   if (OneWire::crc8(addr, 7) != addr[7]) { */
-/*       return sqrt(-1); */
-/*   }  */
-
-/*   /\* */
-/*   ds.reset(); */
-/*   ds.select(addr); */
-/*   ds.write(0x44, 1);        // start conversion, with parasite power on at the end */
-  
-/*   delay(100);     // maybe 750ms is enough, maybe not */
-/*   // we might do a ds.depower() here, but the reset will take care of it. */
-/*   *\/ */
-  
-/*   present = ds.reset(); */
-/*   ds.select(addr);     */
-/*   ds.write(0xBE); */
-  
-/*   for ( i = 0; i < 9; i++) {           // we need 9 bytes */
-/*     data[i] = ds.read(); */
-/*   } */
-  
-/*   int16_t raw = (data[1] << 8) | data[0]; */
-/*   if (raw & 0x01) { */
-/*     return sqrt(-1); */
-/*   } */
-/*   celsius = (float)raw / 16.0; */
-/*   fahrenheit = celsius * 1.8 + 32.0; */
-
-/*   /\* */
-/*   Serial.print("  *Temperature = "); */
-/*   Serial.print(celsius); */
-/*   Serial.print(" *Celsius, "); */
-/*   Serial.print(fahrenheit); */
-/*   Serial.println(" *Fahrenheit"); */
-/*   *\/ */
-
-/*   return celsius; */
-/* } */
 
 float distance(float a, float b) {
   float difference = a-b;
@@ -291,12 +170,10 @@ void setup(void) {
   
   // Initialize the WIFI:
   WiFi.begin(ssid, password);
-  /* WiFi.setOutputPower(0); */
-  /* WiFi.forceSleepBegin(); */
 }
 
 int cpt = 0;
-float temperatures_array[16][3];
+float temperatures_array[16][4];
 int temperatures_array_initialization_step = 0;
 
 void loop(void) {
@@ -344,24 +221,37 @@ void loop(void) {
         if (count > 0) {
           msg += ",";
         }
-        
 
-        if (temperatures_array_initialization_step > 2) {
+        if (temperatures_array_initialization_step > 3) {
           temperatures_array[deviceIndex][0] = temperatures_array[deviceIndex][1];
         }
-        if (temperatures_array_initialization_step > 1) {
+        if (temperatures_array_initialization_step > 2) {
           temperatures_array[deviceIndex][1] = temperatures_array[deviceIndex][2];
+        }
+        if (temperatures_array_initialization_step > 1) {
+          temperatures_array[deviceIndex][2] = temperatures_array[deviceIndex][3];
         }
         temperatures_array[deviceIndex][2] = calibratedTemperature;
 
         float a = temperatures_array[deviceIndex][0];
         float b = temperatures_array[deviceIndex][1];
         float c = temperatures_array[deviceIndex][2];
+        float d = temperatures_array[deviceIndex][3];
 
         int skip_sending = 0;
 
-        if (distance(a,b) > 1.0 && distance(a,c) < 1.0) {
-          skip_sending = 1;
+        if (temperatures_array_initialization_step > 3) {
+          // First case: \/
+          if ((distance(a,b) >= 1.0 || distance(b,c) >= 1.0 ) && distance(a,c) <= 1.0) {
+            skip_sending = 1;
+            temperatures_array[deviceIndex][1] = a;
+          }
+          // Second case: \_/
+          else if(distance(a,b) >= 1.0 && distance(c,d) >= 1.0 && distance(a,d) <= 1.0) {
+            skip_sending = 1;
+            temperatures_array[deviceIndex][1] = a;
+            temperatures_array[deviceIndex][2] = a;
+          }
         }
 
         if (!skip_sending) {
@@ -369,28 +259,11 @@ void loop(void) {
           msg += current_value;
           count += 1;
         }
-
-
-        /* // Prevent noise on the OneWire bus */
-        /* if (deviceIndex > 10) { */
-        /*   delay(100); */
-        /* } else { */
-        /*   delay(50); */
-        /* } */
-        /* delay(50); */
       }
   }
   msg += "]";
 
   cpt = (cpt + 1) % 30;
-
-  /* Serial.println("Turning on wifi"); */
-  /* WiFi.setOutputPower(5); */
-  /* delay(1); */
-  /* // Bring up the WiFi connection */
-  /* WiFi.mode( WIFI_STA ); */
-  /* /\* WiFi.begin( WLAN_SSID, WLAN_PASSWD ); *\/ */
-  /* WiFi.begin(ssid, password); */
 
   /* Serial.println("I will send data to the temperature service"); */
   HTTPClient http;
@@ -405,11 +278,8 @@ void loop(void) {
   /* Serial.println("    - payload: "+String(payload)); */
   /* Serial.println("  -> Done sending data!"); */
   
-  /* Serial.println("Turning off wifi"); */
-  /* WiFi.setOutputPower(0); */
-  /* WiFi.forceSleepBegin(); */
   
-  if (temperatures_array_initialization_step < 3) {
+  if (temperatures_array_initialization_step < 4) {
     temperatures_array_initialization_step += 1;
   }
 
