@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import moteino.moteino as moteino
+import json
 
 
 def get_serial_ports():
@@ -18,7 +19,7 @@ if __name__ == "__main__":
     help = """Firmware uploader
 
     Usage:
-      upload_firmware.py --firmware=<firmware> --serial=<serial>
+      upload_firmware.py --firmware=<firmware> --serial=<serial> [--variables=<json_string>]
       upload_firmware.py --list-firmwares
       upload_firmware.py --list-serial
 
@@ -46,6 +47,7 @@ if __name__ == "__main__":
         # Get parameters
         firmware = arguments["--firmware"]
         serial = arguments["--serial"]
+        variables = arguments["--variables"]
 
         # Identify USB devices
         usb_devices = moteino.get_usb_devices()
@@ -63,16 +65,19 @@ if __name__ == "__main__":
         print("Gateway usb device: %s" % (usb_serial_device))
         print(usb_devices)
 
+        users_variables = {}
+        if variables:
+            users_variables = json.loads(variables)
+
+        print("user's variables: %s" % (users_variables))
+
         node_id = 1
 
         # Compile the "Programmer" ino file
         firmware_program = moteino.get_ino_project(firmware)
         firmware_compilation_result = moteino.compile_ino_project(
             firmware_program,
-            variables={
-                "node_id": node_id,
-                "blink_period": 100
-            }
+            variables=users_variables
         )
 
         # Upload "Gateway" on the given moteino
