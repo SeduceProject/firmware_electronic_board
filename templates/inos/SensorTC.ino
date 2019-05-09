@@ -1,3 +1,4 @@
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <math.h>
@@ -33,24 +34,24 @@ DallasTemperature sensors(&ds);
 
 // Correction for card 'card1'
 #define NB_SENSORS 16
-#define NB_TEMPERATURE_ENTRIES 7
+#define NB_TEMPERATURE_ENTRIES 5
 float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
-  { -0.95, -0.73, -0.35, -0.15, -0.14, -0.28,  0.32},
-  { -0.67, -0.31,  0.03,  0.21,  0.24,  0.30,  0.51},
-  { -0.52, -0.19,  0.12,  0.31,  0.38,  0.42,  0.66},
-  { -0.36, -0.02,  0.39,  0.59,  0.62,  0.66,  0.92},
-  { -0.07,  0.22,  0.62,  0.92,  1.00,  1.01,  1.31},
-  { -0.63, -0.20,  0.17,  0.51,  0.54,  0.63,  0.92},
-  { -1.62, -1.29, -1.04, -0.85, -0.85, -1.06, -0.84},
-  { -1.13, -0.90, -0.44, -0.38, -0.30, -0.59,  0.06},
-  { -1.36, -1.03, -0.71, -0.42, -0.27, -0.49, -0.15},
-  { -1.65, -1.13, -0.82, -0.52, -0.49, -0.68, -0.09},
-  { -0.88, -0.39, -0.04,  0.18,  0.25,  0.20,  0.48},
-  { -1.45, -1.01, -0.57, -0.30, -0.28, -0.36,  0.04},
-  { -1.02, -0.42, -0.02,  0.32,  0.37,  0.47,  0.74},
-  {  0.04,  0.34,  0.74,  1.10,  1.19,  1.23,  1.51},
-  { -2.11, -1.70, -1.39, -1.13, -1.15, -1.34, -1.51},
-  { -1.63, -1.32, -0.88, -0.66, -0.73, -0.91, -0.51},
+  {  0.19,  0.32,  0.91,  0.74,  0.79},
+  {  0.31,  0.47,  0.94,  0.79,  0.82},
+  {  0.17,  0.39,  0.79,  0.81,  0.83},
+  {  1.16,  1.17,  1.69,  1.66,  1.87},
+  {  2.42,  2.56,  3.40,  3.12,  3.11},
+  {  2.90,  3.27,  3.65,  3.81,  3.62},
+  { -1.12, -1.05, -0.93, -1.01, -0.99},
+  { -1.35, -1.28, -0.52, -1.16, -1.16},
+  { -0.05, -0.10,  0.53,  0.42,  0.59},
+  { -0.34,  0.14,  0.79,  0.91,  1.30},
+  {  0.49,  0.79,  1.40,  1.86,  2.10},
+  {  0.95,  1.14,  2.22,  1.91,  1.91},
+  {  3.01,  2.72,  4.02,  3.68,  3.99},
+  {  3.78,  3.94,  4.88,  4.86,  5.24},
+  { -1.43, -1.07, -0.84, -0.42, -0.16},
+  { -1.62, -1.35, -0.82, -0.85, -0.44},
 };
 
 {% elif card_id == 2 %}
@@ -59,22 +60,22 @@ float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
 #define NB_SENSORS 16
 #define NB_TEMPERATURE_ENTRIES 7
 float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
-  { -1.22, -0.85, -0.56, -0.43, -0.32, -0.30,  0.14},
-  {  0.01,  0.48,  0.80,  0.89,  1.01,  1.08,  1.36},
-  {  0.07,  0.59,  0.86,  1.02,  1.07,  1.26,  1.57},
-  { -0.30,  0.37,  0.67,  0.86,  0.88,  1.06,  1.34},
-  {  0.66,  1.22,  1.50,  1.66,  1.83,  2.02,  2.35},
-  { -3.58, -3.26, -2.88, -2.88, -2.71, -2.74, -2.21},
-  { -3.38, -2.95, -2.64, -2.66, -2.55, -2.67, -2.07},
-  { -0.92, -0.47, -0.12,  0.01,  0.04,  0.02,  0.50},
-  { -1.29, -0.87, -0.54, -0.39, -0.22, -0.32,  0.12},
-  { -0.87, -0.33, -0.09,  0.09,  0.16,  0.17,  0.66},
-  {  0.05,  0.63,  0.86,  1.11,  1.16,  1.36,  1.50},
-  {  1.05,  1.67,  1.89,  2.06,  2.06,  2.38,  2.69},
-  {  1.23,  1.81,  2.04,  2.27,  2.30,  2.59,  2.79},
-  { -2.46, -2.11, -1.70, -1.74, -1.59, -1.57, -0.94},
-  { -1.21, -0.84, -0.49, -0.36, -0.25, -0.30,  0.30},
-  { -0.60, -0.24,  0.12,  0.16,  0.18,  0.24,  0.62},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
 };
 
 {% elif card_id == 3 %}
@@ -83,22 +84,22 @@ float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
 #define NB_SENSORS 16
 #define NB_TEMPERATURE_ENTRIES 7
 float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
-  { -1.12, -0.77, -0.66, -0.47, -0.33, -0.25,  0.26},
-  {  0.08,  0.36,  0.49,  0.59,  0.74,  0.82,  1.34},
-  { -0.73, -0.47, -0.23, -0.05,  0.08,  0.13,  0.72},
-  { -0.80, -0.39, -0.23, -0.07,  0.03,  0.16,  0.60},
-  { -0.79, -0.26,  0.01,  0.16,  0.16,  0.37,  0.81},
-  { -0.63, -0.11,  0.20,  0.31,  0.48,  0.67,  1.13},
-  { -2.23, -1.74, -1.81, -1.54, -1.37, -1.47, -0.90},
-  { -1.90, -1.60, -1.63, -1.31, -1.14, -1.14, -0.63},
-  { -2.09, -1.62, -1.36, -1.23, -1.09, -1.09, -0.61},
-  { -1.33, -0.94, -0.64, -0.52, -0.42, -0.40,  0.08},
-  { -0.74, -0.30, -0.01,  0.21,  0.21,  0.38,  0.81},
-  { -1.77, -1.30, -1.06, -0.93, -0.75, -0.73, -0.36},
-  {  0.40,  0.82,  1.12,  1.19,  1.33,  1.39,  1.88},
-  { -0.58, -0.10,  0.32,  0.34,  0.46,  0.62,  1.00},
-  { -0.87, -0.37, -0.30, -0.19, -0.05, -0.09,  0.36},
-  { -1.53, -0.98, -0.69, -0.55, -0.51, -0.44, -0.14},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
 };
 
 {% elif card_id == 4 %}
@@ -107,22 +108,166 @@ float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
 #define NB_SENSORS 16
 #define NB_TEMPERATURE_ENTRIES 7
 float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
-  { -0.60, -0.24,  0.12,  0.16,  0.18,  0.24,  0.62},
-  {  0.15,  0.31,  0.74,  0.76,  0.84,  0.81,  1.22},
-  {  0.58,  0.96,  1.28,  1.38,  1.43,  1.44,  1.76},
-  {  0.13,  0.56,  0.80,  1.01,  1.01,  1.11,  1.39},
-  {  1.51,  1.86,  2.15,  2.38,  2.49,  2.55,  2.87},
-  {  0.66,  1.24,  1.51,  1.75,  1.85,  1.97,  2.17},
-  { -3.19, -2.99, -2.59, -2.49, -2.49, -2.43, -1.97},
-  { -2.68, -2.30, -1.96, -1.94, -1.87, -1.81, -1.43},
-  { -1.54, -1.15, -0.85, -0.68, -0.59, -0.56, -0.30},
-  { -1.28, -0.85, -0.50, -0.37, -0.20, -0.20,  0.22},
-  { -0.69, -0.15,  0.13,  0.24,  0.31,  0.43,  0.67},
-  {  0.00,  0.54,  0.78,  0.98,  1.04,  1.23,  1.44},
-  {  0.80,  1.24,  1.56,  1.76,  1.88,  2.09,  2.31},
-  {  0.81,  1.47,  1.78,  1.95,  2.15,  2.23,  2.47},
-  { -3.54, -3.18, -2.87, -2.81, -2.67, -2.63, -2.20},
-  { -1.11, -0.70, -0.45, -0.40, -0.25, -0.15,  0.28},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 5 %}
+
+// Correction for card 'card5'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 6 %}
+
+// Correction for card 'card6'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 7 %}
+
+// Correction for card 'card7'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 8 %}
+
+// Correction for card 'card8'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 9 %}
+
+// Correction for card 'card9'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+};
+
+{% elif card_id == 100 %}
+
+// Correction for card 'card6'
+#define NB_SENSORS 16
+#define NB_TEMPERATURE_ENTRIES 7
+float calibrationMap[NB_SENSORS][NB_TEMPERATURE_ENTRIES] = {
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
+  { 0, 0, 0, 0, 0, 0, 0},
 };
 
 {% else %}
@@ -226,15 +371,15 @@ void scan_address_indexes() {
 }
 
 float getCalibratedTemperature(int deviceIndex, float uncalibratedTemperature) {
-  int calib_t_min = 0;
-  int calib_t_max = 60;
+  int calib_t_min = 10;
+  int calib_t_max = 50;
 
   if (uncalibratedTemperature <= calib_t_min) {
-    return uncalibratedTemperature - calibrationMap[deviceIndex][0];
+    return uncalibratedTemperature + calibrationMap[deviceIndex][0];
   }
 
   if (uncalibratedTemperature >= calib_t_max) {
-    return uncalibratedTemperature - calibrationMap[deviceIndex][6];
+    return uncalibratedTemperature + calibrationMap[deviceIndex][NB_TEMPERATURE_ENTRIES - 1];
   }
 
   int calib_index_inferior_temp = (int) (uncalibratedTemperature - calib_t_min) / 10.0;
@@ -259,8 +404,6 @@ float distance(float a, float b) {
 
 void setup(void) {
   Serial.begin(9600);
-  Serial.println("Hello!");
-
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   
   scan_address_indexes();
@@ -309,90 +452,124 @@ void loop(void) {
   /*    indexes[n] =  indexes[i]; */
   /*    indexes[i] = temp; */
   /* } */
-  
+
+  /* Serial.println("a"); */
   for (int i = 0; i < 16; i++) {
-      Serial.println("getting temperatures");
+      delay(50);
+      /* Serial.println("getting temperatures"); */
+      /* Serial.println("a.1"); */
       int deviceIndex = indexes[i];
       DeviceAddress* devAddrPtr = addresses[deviceIndex];
-      float temperature = sensors.getTempC(*devAddrPtr);    
+      /* Serial.println("a.2"); */
+      float temperature = sensors.getTempC(*devAddrPtr);  
+      /* Serial.println("a.3");   */
       //float temperature = getTempC_raw(*devAddrPtr);
     
       float avg_temperature = temperature;
       
+      /* Serial.println("a.4"); */
       float calibratedTemperature = getCalibratedTemperature(deviceIndex, temperature);
       String macAddressAsString = deviceAddressToString(*devAddrPtr);
+      /* Serial.println("a.5"); */
 
       if (!isnan(temperature) && temperature > 0) {
-        Serial.println("["+String(deviceIndex)+"] --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
+          /* Serial.println("a.5.a1"); */
+          Serial.println("["+String(deviceIndex)+"] --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
+          /* Serial.println("a.5.a2"); */
 
-        if (temperatures_array_initialization_step > 3) {
-          temperatures_array[deviceIndex][0] = temperatures_array[deviceIndex][1];
-        }
-        if (temperatures_array_initialization_step > 2) {
-          temperatures_array[deviceIndex][1] = temperatures_array[deviceIndex][2];
-        }
-        if (temperatures_array_initialization_step > 1) {
-          temperatures_array[deviceIndex][2] = temperatures_array[deviceIndex][3];
-        }
-        temperatures_array[deviceIndex][2] = calibratedTemperature;
 
-        float a = temperatures_array[deviceIndex][0];
-        float b = temperatures_array[deviceIndex][1];
-        float c = temperatures_array[deviceIndex][2];
-        float d = temperatures_array[deviceIndex][3];
-
-        int skip_sending = 0;
-
-        if (temperatures_array_initialization_step > 3) {
-          // First case: \/
-          if ((distance(a,b) >= 1.0 || distance(b,c) >= 1.0 ) && distance(a,c) <= 1.0) {
-            skip_sending = 1;
-            temperatures_array[deviceIndex][1] = a;
+          if (temperatures_array_initialization_step > 3) {
+              temperatures_array[deviceIndex][0] = temperatures_array[deviceIndex][1];
           }
-          // Second case: \_/
-          else if(distance(a,b) >= 1.0 && distance(c,d) >= 1.0 && distance(a,d) <= 1.0) {
-            skip_sending = 1;
-            temperatures_array[deviceIndex][1] = a;
-            temperatures_array[deviceIndex][2] = a;
+          if (temperatures_array_initialization_step > 2) {
+              temperatures_array[deviceIndex][1] = temperatures_array[deviceIndex][2];
           }
-        }
+          if (temperatures_array_initialization_step > 1) {
+              temperatures_array[deviceIndex][2] = temperatures_array[deviceIndex][3];
+          }
+          
+          /* Serial.println("a.5.a3"); */
+          temperatures_array[deviceIndex][2] = calibratedTemperature;
 
-        if (!skip_sending) {
-          String current_value = "{\"sensor\":\""+String(macAddressAsString)+"\",\"t\":\"T\",\"v\":"+String(b)+"}";
-          if (count > 0) {
-            msg += ",";
+          float a = temperatures_array[deviceIndex][0];
+          float b = temperatures_array[deviceIndex][1];
+          float c = temperatures_array[deviceIndex][2];
+          float d = temperatures_array[deviceIndex][3];
+          /* Serial.println("a.5.a4"); */
+
+          int skip_sending = 0;
+
+          if (temperatures_array_initialization_step > 3) {
+              // First case: \/ or /\ 
+              if ((distance(a,b) >= 1.0 || distance(b,c) >= 1.0) && distance(a,c) <= 1.0) {
+                  skip_sending = 1;
+                  temperatures_array[deviceIndex][1] = a;
+                  Serial.println("a:"+String(a)+" b:"+String(b)+" c:"+String(c));
+              }
+              //                      _
+              // Second case: \_/ or / \ 
+              else if(distance(a,b) >= 1.0 && distance(c,d) >= 1.0 && distance(a,d) <= 2.0) {
+                  skip_sending = 2;
+                  temperatures_array[deviceIndex][1] = a;
+                  temperatures_array[deviceIndex][2] = a;
+                  Serial.println("a:"+String(a)+" b:"+String(b)+" c:"+String(c)+" d:"+String(d));
+              }
           }
-          msg += current_value;
-          count += 1;
-        }
+          /* Serial.println("a.5.a5"); */
+
+          if (!skip_sending) {
+              String current_value = "{\"sensor\":\""+String(macAddressAsString)+"\",\"t\":\"T\",\"v\":"+String(b)+"}";
+              if (count > 0) {
+                  msg += ",";
+              }
+              msg += current_value;
+              count += 1;
+          } else {
+              Serial.println("Skip Sending...." + String(skip_sending));
+          }
+          
+          /* Serial.println("a.5.a6"); */
       } else {
-        // Print sensors that may have a problem
-        Serial.println("["+String(deviceIndex)+"] (KO) --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
+          /* Serial.println("a.5.b1"); */
+          // Print sensors that may have a problem
+          Serial.println("["+String(deviceIndex)+"] (KO) --> "+ String(temperature)+" ("+String(avg_temperature)+")"+" ("+String(calibratedTemperature)+")");
+          /* Serial.println("a.5.b2"); */
       }
+      /* Serial.println("a.6"); */
   }
+  
+  /* Serial.println("b"); */
   msg += "]";
 
-  cpt = (cpt + 1) % 30;
-
-
+  cpt = (cpt + 1) % 30;  
   
-  
-  if (temperatures_array_initialization_step < 4) {
+  if (temperatures_array_initialization_step < 4) {  
+    /* Serial.println("b.1a"); */
     temperatures_array_initialization_step += 1;
+    /* Serial.println("b.1b"); */
   } else {
+    /* Serial.println("b.2a"); */
     Serial.println("I will send data to the temperature service");
     HTTPClient http;
+    /* Serial.println("b.2b"); */
     //http.begin("http://192.168.1.50:8080/temperature/list");
     http.begin("http://11.9.1.55:8080/temperature/list");
     http.addHeader("Content-Type", "application/json");
+    /* Serial.println("b.2c"); */
     // Perform an HTTP POST request
     int httpCode = http.POST(msg);
+    /* Serial.println("b.2d"); */
     String payload = http.getString();
+    /* Serial.println("b.2e"); */
     http.end();
+    /* Serial.println("b.2f"); */
     Serial.println("    - httpCode: "+String(httpCode));
     Serial.println("    - payload: "+String(payload));
     Serial.println("  -> Done sending data!");
+    /* Serial.println("b.2g"); */
   }
+  
+  /* Serial.println("c"); */
 
   digitalWrite(LED_BUILTIN, LOW);
   delay(100);
