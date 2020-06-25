@@ -3,7 +3,7 @@ import sys
 from moteino.capture.serial_capture import SerialCaptureThread
 
 if __name__ == "__main__":
-    print "Running server"
+    print("Running server")
 
     node_id = 1
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # # capture_thread_programmer.join()
 
     while True:
-        x = raw_input("Press a key when you have connected a new sensor on an USB port")
+        x = input("Press a key when you have connected a new sensor on an USB port")
 
         node_id += 1
         print("I will configure a new sensor (node_id=%i)" % (node_id))
