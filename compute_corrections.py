@@ -183,8 +183,8 @@ if __name__ == "__main__":
             cpt = 0
             for (temperature_target, datetime_str) in current_targets.items():
                 sensor_temperature_target_corrections = [v["corrections"][sensor][cpt] for (c, v) in corrections.items()]
-                sensor_temperature_target_corrections_std = numpy.mean(sensor_temperature_target_corrections)
-                corrections_mean[sensor] += [sensor_temperature_target_corrections_std]
+                sensor_temperature_target_corrections_mean = numpy.mean(sensor_temperature_target_corrections)
+                corrections_mean[sensor] += [sensor_temperature_target_corrections_mean]
                 cpt += 1
 
         output = "// Correction for card '%s'\n" % (card)
