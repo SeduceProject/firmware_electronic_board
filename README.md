@@ -45,6 +45,21 @@ python3 upload_firmware.py --list-serial
 python3 upload_firmware.py --firmware SensorTC --serial /dev/ttyUSB1 --variables "{'card_name': 'card1'}"
 ```
 
+## Compute corrections for electronic cards after calibrations of thermocouples
+
+First create a tunnel between your computer and seduce1
+
+```shell script
+ssh -N -L 8086:192.168.1.25:8086 seduce1
+```
+
+Then provide information on the calibration in `conf/calibration.yaml` and finally run the following script:
+
+```shell script
+python3 compute_corrections.py
+```
+
+
 ## Contributing
 
 Don't hesitate to fork this project and to create a pull request.

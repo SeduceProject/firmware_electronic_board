@@ -15,7 +15,7 @@
     "3bcef85809fc2ca8",
     "3bd8f85809fc2c41",
     "3b10f95809fc2cb2"
-],
+]
 "card2": [
     "3b3c0c5909fc6cc4",
     "3b46b95809fc0ce4",
@@ -32,7 +32,8 @@
     "3bcb0c5909fc6c33",
     "3b670c5909fc6c12",
     "3b71f95809fc2c46",
-    "3be70a5909fc6c64"],
+    "3be70a5909fc6c64"
+]
 "card3": [
     "3bbf055909fc2cc2",
     "3bf90c5909fc6cb0",
@@ -49,7 +50,8 @@
     "3b93055909fc2c09",
     "3b7cf95809fc2c0c",
     "3b9e055909fc2c43",
-    "3b77065909fc2cb2"],
+    "3b77065909fc2cb2"
+]
 "card4": [
     "3baf0a5909fc2cf6",
     "3badf85809fc2c32",
@@ -66,7 +68,8 @@
     "3b510c5909fc6c4d",
     "3b82fb5809fc2cee",
     "3b040d5909fc6c45",
-    "3bf2fa5809fc2cbb"],
+    "3bf2fa5809fc2cbb"
+]
 "card5": [
     "3bd1b75809fc0c72",
     "3bc6b75809fc0cac",
@@ -83,7 +86,8 @@
     "3b010a5909fc2cb9",
     "3b05f95809fc2c02",
     "3b61065909fc2c5b",
-    "3bb8125909fc4c0f"],
+    "3bb8125909fc4c0f"
+]
 "card6": [
     "3b3ab75809fc0ca3",
     "3b77fb5809fc2c77",
@@ -100,7 +104,8 @@
     "3baf0a5909fc6cb0",
     "3b94b95809fc0c4e",
     "3b51b95809fc0c3a",
-    "3b14065909fc2c28"],
+    "3b14065909fc2c28"
+]
 "card8": [
     "3bdf095909fc2c20", # CARTE 8 ?
     "3ba3fb5809fc2c6f",
@@ -117,8 +122,8 @@
     "3b190d5909fc6c54",
     "3b82065909fc2c2b", # PB
     "3b7e0c5909fc6cdf",
-    "3b30b95809fc0cce", # PB
-],
+    "3b30b95809fc0cce" # PB
+]
 "card9": [
     "3b6f0a5909fc2c69", # CARTE 9?
     "3b91b75809fc0c07",
@@ -135,8 +140,8 @@
     "3bce125909fc4c25",
     "3bb40c5909fc6c8f",
     "3bf5055909fc2c78",
-    "3be20c5909fc6c13",
-],
+    "3be20c5909fc6c13"
+]
 "card_tc_test": [
     "3b67f95809fc2caf",
     "3b420a5909fc2c95",
@@ -154,7 +159,7 @@
     "3bbfb95809fc0c00",
     "3b9f0c5909fc6cc1",
     "3b51f95809fc2cf0",
-],
+]
 "ds18b20_exterior": [
     "28b8fb2909000003"
 ]
